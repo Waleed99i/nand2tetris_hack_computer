@@ -52,7 +52,7 @@ The course takes you on a journey from constructing elementary logic gates all t
 
 ## 📜 Certificate
 
-I successfully completed this course and earned a certificate of completion 🎓  
+I successfully completed this course, got 100% Marks and finally earned a certificate of completion 🎓  
 
 
   
