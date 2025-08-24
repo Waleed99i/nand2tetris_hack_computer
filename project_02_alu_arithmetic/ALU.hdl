@@ -1,0 +1,61 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/2/ALU.hdl
+/**
+ * ALU (Arithmetic Logic Unit):
+ * Computes out = one of the following functions:
+ *                0, 1, -1,
+ *                x, y, !x, !y, -x, -y,
+ *                x + 1, y + 1, x - 1, y - 1,
+ *                x + y, x - y, y - x,
+ *                x & y, x | y
+ * on the 16-bit inputs x, y,
+ * according to the input bits zx, nx, zy, ny, f, no.
+ * In addition, computes the two output bits:
+ * if (out == 0) zr = 1, else zr = 0
+ * if (out < 0)  ng = 1, else ng = 0
+ */
+
+CHIP ALU {
+    IN  
+        x[16], y[16],  // 16-bit inputs        
+        zx, // zero the x input?
+        nx, // negate the x input?
+        zy, // zero the y input?
+        ny, // negate the y input?
+        f,  // compute (out = x + y) if f , (out = x & y) if !f ?
+        no; // negate the out output?
+    OUT 
+        out[16], // 16-bit output
+        zr,      // if (out == 0) equals 1, else 0
+        ng;      // if (out < 0)  equals 1, else 0
+
+    PARTS:
+    // zeroing (allowed by your IDE: b=false as 16-bit 0)
+    Mux16(a=x, b=false, sel=zx, out=zxout);
+    Mux16(a=y, b=false, sel=zy, out=zyout);
+
+    // optional negate inputs
+    Not16(in=zxout, out=notx);
+    Not16(in=zyout, out=noty);
+    Mux16(a=zxout, b=notx, sel=nx, out=nxout);
+    Mux16(a=zyout, b=noty, sel=ny, out=nyout);
+
+    // core function: f=1 => add, f=0 => and
+    Add16(a=nxout, b=nyout, out=addout);   // <-- fixed: was And16 by mistake
+    And16(a=nxout, b=nyout, out=andout);
+    Mux16(a=andout, b=addout, sel=f, out=fout);
+
+    // optional negate of result + fan-out for flags
+    Not16(in=fout, out=nfout);
+    Mux16(a=fout, b=nfout, sel=no, 
+          out=out, 
+          out[0..7]=zr1, out[8..15]=zr2, out[15]=ng);
+
+    // zr = !(OR of all 16 bits)
+    Or8Way(in=zr1, out=or1);
+    Or8Way(in=zr2, out=or2);
+    Or(a=or1, b=or2, out=or3);
+    Not(in=or3, out=zr);
+}
